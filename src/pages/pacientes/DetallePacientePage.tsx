@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
+    eliminarPaciente,
     modificarPaciente,
     obtenerPacientePorId,
 } from '../../services/pacienteService'
@@ -9,6 +10,7 @@ import { obtenerMensajeError } from '../../utils/errores'
 
 export function DetallePacientePage() {
     const { id } = useParams()
+    const navigate = useNavigate()
     const pacienteId = Number(id)
 
     const [paciente, setPaciente] = useState<Paciente | null>(null)
@@ -16,6 +18,7 @@ export function DetallePacientePage() {
     const [mensaje, setMensaje] = useState('')
     const [cargando, setCargando] = useState(true)
     const [guardando, setGuardando] = useState(false)
+    const [eliminando, setEliminando] = useState(false)
 
     useEffect(() => {
         async function cargarPaciente() {
@@ -67,6 +70,31 @@ export function DetallePacientePage() {
             )
         } finally {
             setGuardando(false)
+        }
+    }
+
+    async function handleEliminar() {
+        if (!paciente) return
+
+        const confirmado = window.confirm(
+            '¿Seguro que querés eliminar este paciente? Esta acción no se puede deshacer.',
+        )
+
+        if (!confirmado) return
+
+        setError('')
+        setMensaje('')
+        setEliminando(true)
+
+        try {
+            await eliminarPaciente(paciente.id)
+            navigate('/pacientes')
+        } catch (error) {
+            setError(
+                obtenerMensajeError(error, 'No se pudo eliminar el paciente.'),
+            )
+        } finally {
+            setEliminando(false)
         }
     }
 
@@ -202,6 +230,16 @@ export function DetallePacientePage() {
                     {guardando ? 'Guardando...' : 'Guardar cambios'}
                 </button>
             </form>
+
+            <div className="acciones">
+                <button
+                    type="button"
+                    onClick={handleEliminar}
+                    disabled={eliminando}
+                >
+                    {eliminando ? 'Eliminando...' : 'Eliminar paciente'}
+                </button>
+            </div>
 
             <p>
                 <Link to="/pacientes">Volver a pacientes</Link>

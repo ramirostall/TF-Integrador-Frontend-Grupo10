@@ -44,3 +44,7 @@ export async function modificarPaciente(
     const respuesta = await api.put<Paciente>(`/pacientes/${id}`, datos)
     return respuesta.data
 }
+
+export async function eliminarPaciente(id: number): Promise<void> {
+    await api.delete(`/pacientes/${id}`)
+}
